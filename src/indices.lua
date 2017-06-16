@@ -59,25 +59,25 @@ local UTF16=HANDLERS.UTF16()
 --------------------------------------------------------------------------------------------------------------------------------
 META.KFH={
 -- IDENTIFIER    OFFSET 	LENGTH 	HANDLER
-  header       ={0         8       COPY          },
-  crc32        ={8         4,      COPY          },
-  creation     ={12        4,      EPOCH_2000    },
-  last_edit    ={16        4,      EPOCH_2000    },
-  unknown      ={20        4,      COPY          },
-  creator_id   ={24        10,     BIG_ENDIAN    },
-  parent_id    ={34        10,     BIG_ENDIAN    },
-  current_id   ={44        10,     BIG_ENDIAN    },
-  creator_name ={54        22,     UTF16         },
-  parent_name  ={76        22,     UTF16         },
-  current_name ={98        22,     UTF16         },
-  root_file    ={120       22,     COPY          },
-  parent_file  ={148       22,     COPY          },
-  current_file ={176       22,     COPY          },
-  frames       ={204       2,      LITTLE_ENDIAN },
-  thumbnail    ={206       2,      LITTLE_ENDIAN },
-  flags        ={208       2,      COPY          },
-  framerate    ={210       1,      COPY          },
-  layer_vis    ={211       1,      COPY          }
+  header       ={0,        8,       COPY         },
+  crc32        ={8,        4,      COPY          },
+  creation     ={12,       4,      EPOCH_2000    },
+  last_edit    ={16,       4,      EPOCH_2000    },
+  unknown      ={20,       4,      COPY          },
+  creator_id   ={24,       10,     BIG_ENDIAN    },
+  parent_id    ={34,       10,     BIG_ENDIAN    },
+  current_id   ={44,       10,     BIG_ENDIAN    },
+  creator_name ={54,       22,     UTF16         },
+  parent_name  ={76,       22,     UTF16         },
+  current_name ={98,       22,     UTF16         },
+  root_file    ={120,      22,     COPY          },
+  parent_file  ={148,      22,     COPY          },
+  current_file ={176,      22,     COPY          },
+  frames       ={204,      2,      LITTLE_ENDIAN },
+  thumbnail    ={206,      2,      LITTLE_ENDIAN },
+  flags        ={208,      2,      COPY          },
+  framerate    ={210,      1,      COPY          },
+  layer_vis    ={211,      1,      COPY          }
 }
 --------------------------------------------------------------------------------------------------------------------------------
 -- Binding Function
