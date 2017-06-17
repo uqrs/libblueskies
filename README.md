@@ -1,17 +1,17 @@
 # libblueskies
 ## Overview
-Hopefully a tool to turn DSi Flipnote Studio 3D flips into something a regular PC can display.
+Hopefully a tool to turn 3DS Flipnote Studio 3D flips into something a regular PC can display.
 Why's it called libblueskies? Well, my initial motivation for making this tool was to deserialise all of [mellowforests'](http://mellowforests.deviantart.com/) (previously known as 'Blueskies') flipnotes. And it's better than... "deflippifier".
 ### Depencencies:
 - Lua 5.3 or higher.
-- ffmpeg, probably.
+- sox, more likely.
 
 ### Goals:
 - Implement src/indices.lua properly.
 - Finish the binding function.
 - Parse/store the other headers.
 - Obviously, we need to decipher whatever kind of video format .kwz files utilise to display content to the screen.
-- Write an ffmpeg pseudo-api.
+- Write a sox pseudo-api.
 
 ## Licensing and attribution.
 The entirety of this repository is registered under the GNU GPL v3.0+ (see `LICENSE` for details), **EXCEPT FOR:**
