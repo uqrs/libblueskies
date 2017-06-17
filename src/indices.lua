@@ -17,11 +17,10 @@
 --
 -- [The reference tables found in this file are registered under a Creative Commons Attribution-ShareAlike 4.0 International
 --  License, and it authored by and can be accredited to the Flipnote Collective. Nothing but the wording has been slightly
---  altered; the addition of the "IDENTIFIER" column has been introduced by Zaralib and was not at all included by the Flipnote
---  Collective. http://github.com/flipnote-collective/flipnote-studio-3d-docs ]
+--  altered; the addition of the "IDENTIFIER" column has been introduced by libblueskies and was not at all included by the
+--  Flipnote Collective. http://github.com/flipnote-collective/flipnote-studio-3d-docs ]
 --------------------------------------------------------------------------------------------------------------------------------
 local META={};
-
 --------------------------------------------------------------------------------------------------------------------------------
 -- Generate all of the handlers that will be utilised in this file:
 --------------------------------------------------------------------------------------------------------------------------------
@@ -34,7 +33,7 @@ local BIG_ENDIAN=HANDLERS.ENDIAN("big",true)
 local LITTLE_ENDIAN=HANDLERS.ENDIAN("little",true)
 local UTF16=HANDLERS.UTF16()
 --------------------------------------------------------------------------------------------------------------------------------
--- File Header Data
+-- File Header Data -- CC-BY-SA 4.0 applies to this comment block.
 --------------------------------------------------------------------------------------------------------------------------------
 -- OFFSET  LENGTH       CONTENT                        NOTES                                  IDENTIFIER
 -- 0       8            Section Header                                                        header
@@ -58,8 +57,8 @@ local UTF16=HANDLERS.UTF16()
 -- 211     1            Layer Visibility               ???                                    layer_vis
 --------------------------------------------------------------------------------------------------------------------------------
 META.KFH={
--- IDENTIFIER    OFFSET 	LENGTH 	HANDLER
-  header       ={0,        8,       COPY         },
+-- IDENTIFIER    OFFSET    LENGTH  HANDLER
+  header       ={0,        8,      COPY          },
   crc32        ={8,        4,      COPY          },
   creation     ={12,       4,      EPOCH_2000    },
   last_edit    ={16,       4,      EPOCH_2000    },
@@ -78,6 +77,15 @@ META.KFH={
   flags        ={208,      2,      COPY          },
   framerate    ={210,      1,      COPY          },
   layer_vis    ={211,      1,      COPY          }
+}
+--------------------------------------------------------------------------------------------------------------------------------
+-- Thumbnail Section -- CC-BY-SA 4.0 applies to this comment block.
+--------------------------------------------------------------------------------------------------------------------------------
+META.KTN={
+-- IDENTIFIER    OFFSET    LENGTH  HANDLER
+  header       ={0,        8,      COPY          },
+  unknown      ={8,        4,      COPY          },
+  thumbnail    ={12,       4,      COPY          }
 }
 --------------------------------------------------------------------------------------------------------------------------------
 -- Binding Function
