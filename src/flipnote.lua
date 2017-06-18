@@ -69,8 +69,8 @@ do
 -- "file" is a file handle for a .kwz file or a process.
 --------------------------------------------------------------------------------------------------------------------------------
 	function flipnote:load ( file , which )
-      -- Essential assertions:
-      assert(type(file) == "userdata", "expected userdata. Got " .. type(file))
+		-- Essential assertions:
+		assert(type(file) == "userdata", "expected userdata. Got " .. type(file))
 
 		-- Declare essential local variables.
 		local full=file:read("*all"); file:close();
