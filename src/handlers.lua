@@ -1,8 +1,8 @@
 --------------------------------------------------------------------------------------------------------------------------------
 -- File Content Handlers
 --------------------------------------------------------------------------------------------------------------------------------
--- The "HANDLER_LOCAL" table contains a bunch of function pointers that accept arguments, and return arbitrary data. These
--- function pointers are utilised by src/indices.lua to determine what should be done with what input.
+-- The "HANDLER_LOCAL" table contains a bunch of function pointers that accept arguments, and return arbitrary data. Further
+-- down, gen_handler() generated wrapper functions for these handlers- a feature that src/indices.lua makes use of.
 --------------------------------------------------------------------------------------------------------------------------------
 do; local HANDLERS_LOCAL={}
 --------------------------------------------------------------------------------------------------------------------------------
@@ -79,14 +79,14 @@ do; local HANDLERS_LOCAL={}
 --------------------------------------------------------------------------------------------------------------------------------
 	local function gen_handler ( self , index )
 		return function ( ... ) do
-         -- Keep the arguments and index safe.
-         local arguments={...};
-         local which=index;
-         -- Return a function that calls the handler with the appropriate arguments.
-         return function ( input )
-            return HANDLERS_LOCAL[which]( input , table.unpack(arguments) )
-         end
-	   end; end
+			-- Keep the arguments and index safe.
+			local arguments={...};
+			local which=index;
+			-- Return a function that calls the handler with the appropriate arguments.
+			return function ( input )
+				return HANDLERS_LOCAL[which]( input , table.unpack(arguments) )
+			end
+		end; end
 	end;
 	HANDLERS=setmetatable({},{__index=gen_handler});
 end
