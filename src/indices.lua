@@ -131,7 +131,65 @@ META.KSN={
    se3_data     ={nil,      "se3_length",     COPY          },
    se4_data     ={nil,      "se4_length",     COPY          }
 }
+--------------------------------------------------------------------------------------------------------------------------------
+-- Memo Color Section -- C-BY-SA 4.0 applies to this comment block.
+--------------------------------------------------------------------------------------------------------------------------------
+-- OFFSET  LENGTH       CONTENT                        NOTES                                  IDENTIFIER
+-- 0       8            Section Header                                                        header
+-- 8       4            Unknown Value                                                         unknown
+-- 12      remaining    Frame Data                     Format Unknown                         data
+--------------------------------------------------------------------------------------------------------------------------------
+META.KMC={
+-- IDENTIFIER     OFFSET    LENGTH            HANDLER
+   header       ={0,        8,                COPY          },
+   unknown      ={8,        4,                COPY          },
+   data         ={12,       nil,              COPY          }
+}
 
+--------------------------------------------------------------------------------------------------------------------------------
+-- OFFSET  LENGTH       CONTENT                        NOTES                                  IDENTIFIER
+-- 0       .5           Unknown                                                               unknown
+-- .5      .5           Paper Colour                                                          colour
+-- 1       .5           Layer A colour 1                                                      lA_c1
+-- 1.5     .5           Layer A colour 2                                                      lA_c2
+-- 2       .5           Layer B colour 1                                                      lB_c1
+-- 2.5     .5           Layer B colour 3                                                      lB_c3
+-- 3       .5           Layer C colour 1                                                      lC_c1
+-- 3.5     .5           Layer C colour 3                                                      lC_c3
+-- 4       2            Layer A size in KMC            Unsigned Little Endian                 lA_size
+-- 6       2            Layer B size in KMC            Ditto.                                 lB_size
+-- 8       2            Layer C size in KMC            Ditto.                                 lC_size
+-- 10      10           Frame Author ID                Null-terminated Hex(?)                 author
+-- 20      1            Layer A 3D Depth               Unsigned Little Endian                 lA_3d
+-- 21      1            Layer B 3D Depth               Ditto.                                 lB_3d
+-- 22      1            Layer C 3D Depth               Ditto.                                 lC_3d
+-- 23      1            Sound Effect Flags             To be deciphered(?)                    se_flags
+-- 24      4            Camera Usage                   No: 0x0000; Yes: 0x0700;               camera
+--------------------------------------------------------------------------------------------------------------------------------
+-- META.KMI repeats itself- For META.KMI[n] offsets every single value appearing in META.KMI[n] with by 28 bytes (meaning
+-- META.KMI[1] holds the first frames' data- META.KMI[2] holds the seconds frames' data, etc.) The "half byte" (.5
+-- offsets/lengths) count as 4 bits, and they will be parsed as such.
+--------------------------------------------------------------------------------------------------------------------------------
+META.KMI={}; META.KMI[1]={
+-- IDENTIFIER     OFFSET    LENGTH            HANDLER
+	unknown      ={0,        .5,               COPY,         },
+	colour       ={.5,       .5,               LITTLE_ENDIAN }, -- Not sure on handler- needs be verified.
+	lA_c1        ={1,        .5,               LITTLE_ENDIAN }, -- Ditto.
+	lA_c2        ={1.5,      .5,               LITTLE_ENDIAN }, -- Ditto.
+	lB_c1        ={2,        .5,               LITTLE_ENDIAN }, -- Ditto.
+	lB_c3        ={2.5,      .5,               LITTLE_ENDIAN }, -- Ditto.
+	lC_c1        ={3,        .5,               LITTLE_ENDIAN }, -- Ditto.
+	lC_c3        ={3.5,      .5,               LITTLE_ENDIAN }, -- Ditto
+	lA_size      ={4,        2,                LITTLE_ENDIAN },
+	lB_size      ={6,        2,                LITTLE_ENDIAN },
+	lC_size      ={8,        2,                LITTLE_ENDIAN },
+	author       ={10,       10,               BIG_ENDIAN    },
+	lA_3d        ={20,       1,                LITTLE_ENDIAN },
+	lB_3d        ={21,       1,                LITTLE_ENDIAN },
+	lC_3d        ={22,       1,                LITTLE_ENDIAN },
+	se_flags     ={23,       1,                COPY          },
+	camera       ={24,       4,                BIG_ENDIAN    }
+}
 --------------------------------------------------------------------------------------------------------------------------------
 -- Binding Function
 --------------------------------------------------------------------------------------------------------------------------------
