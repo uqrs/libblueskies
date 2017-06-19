@@ -203,27 +203,34 @@ INDEX.KMI={}; INDEX.KMI[1]={
 local lookup=setmetatable({},{__mode="k"});
 local META={};
 --------------------------------------------------------------------------------------------------------------------------------
--- "standard" is pretty normal- __index looks through its associated header file for the field that's supposed to be accessed,
--- and then uses the offset and length to return the appropriate field.
+-- Get Offset-length-handler
 --------------------------------------------------------------------------------------------------------------------------------
-META.STANDARD={};
-function META.STANDARD.__index ( self , index )
-	-- Temporarily store which header and flipnote this instance belongs to.
-	local reference=INDEX[lookup[self].header];
-	local header=lookup[self].flipnote.header_raw[lookup[self].header];
-	local flipnote=lookup[self].flipnote;
-	local raw=false; nocache=false;
-	-- Does the 'index' end in '_nocache'? If so, set 'nocache' to true and remove it from the index field.
-	if ( index:find("_nocache$") ) then; nocache=true; index=index:gsub("_nocache$",""); end;
-	if ( lookup[self].cache[index] and (not nocache) ) then return lookup[self].cache[index] end;
-	-- Does the 'index' end in '_raw'? If so, set 'raw' to true, and remove it from the index field:
-	if ( index:find("_raw$") ) then; raw=true; index=index:gsub("_raw$",""); end;
+-- A function used by many metamethods- accepts two arguments- self (the table that's being indexed), and index (the field
+-- being looked for.) get_olh() goes to the appropriate subtable in INDEX[] and attempts to retrieve the offset, length, and
+-- handler for this field, dereferencing as necessary--
+--
+-- If in the INDEX[] table "offset" is a string referring to another field 'f', then get_olh() will assume the offset is 'f's
+-- offset + 'f's length (meaning the offset is right after the aforementioned field).
+--
+-- If in the INDEX[] table "length" is a string referring to another field 'n', then the value of this field will be used as
+-- the length (to deal with one field describing anothers' length).
+--
+-- If in the INDEX[] table "length" is nil, then get_olh() will assume the rest of the section belongs to this field.
+--------------------------------------------------------------------------------------------------------------------------------
+local function get_olh ( self , index );
+	-- Get a reference to the appropriate INDEX table.
+   local reference=INDEX[lookup[self].header];
+
 	-- Does the index even exist?
-	assert( reference[index] , "no such index '"..index.."'" );
+	-- If not- it's gonna be a nil.
+	if ( not reference[index] ) then
+		return nil
+	end
+
 	-- Retrieve the offset, length, and handler.
-	local offset=(reference[index][1]);
-	local length=(reference[index][2]);
-	local handler=((not raw) and reference[index][3]) or COPY;
+	local offset =(reference[index][1]);
+	local length =(reference[index][2]);
+	local handler=(reference[index][3]);
 	-- If the length is a string, then it will assume the numerical value outputted by the contents of the index referred to by
 	-- the string. If the length is nil, then assume it's the rest of the header.
 	if ( type(length) == "string" ) then; length=tonumber(self[length]);
@@ -239,15 +246,40 @@ function META.STANDARD.__index ( self , index )
 		offset=current+margin-iter;
 	else --[[ not a string       ]]     ; offset=offset+1; end;
 
+	return offset,length,handler;
+end
+
+--------------------------------------------------------------------------------------------------------------------------------
+-- "standard" is pretty normal- __index looks through its associated header file for the field that's supposed to be accessed,
+-- and then uses the offset and length to return the appropriate field.
+--------------------------------------------------------------------------------------------------------------------------------
+META.STANDARD={};
+function META.STANDARD.__index ( self , index )
+	-- Temporarily store which header and flipnote this instance belongs to.
+	local header=lookup[self].flipnote.header_raw[lookup[self].header];
+	local flipnote=lookup[self].flipnote;
+	local raw=false; nocache=false;
+	-- Does the 'index' end in '_nocache'? If so, set 'nocache' to true and remove it from the index field.
+	if ( index:find("_nocache$") ) then; nocache=true; index=index:gsub("_nocache$",""); end;
+	if ( lookup[self].cache[index] and (not nocache) ) then return lookup[self].cache[index] end;
+	-- Does the 'index' end in '_raw'? If so, set 'raw' to true, and remove it from the index field:
+	if ( index:find("_raw$") ) then; raw=true; index=index:gsub("_raw$",""); end;
+	-- Retrieve the offset, length, and handler:
+	local offset,length,handler=get_olh(self,index);
+	-- If we're supposed to be using a raw handler, set it to COPY:
+	handler=((not raw) and handler) or COPY
+	-- If the offset is 'nil', then this field does not exist:
+	if ( not offset ) then return nil end
+
 	-- Cache the retrieved value:
 	lookup[self].cache[index]=handler(header:sub(offset,offset+length));
-	-- Now, from the 'header', parse the bit sequence:
+	-- And return it.
 	return lookup[self].cache[index];
 end
 --------------------------------------------------------------------------------------------------------------------------------
 -- Iterating Over Indices
 --------------------------------------------------------------------------------------------------------------------------------
--- Generate an iterator that can iterate over kwz files:
+-- Generate an iterator that can iterate over kwz file headers.
 --------------------------------------------------------------------------------------------------------------------------------
 function META.STANDARD.__call ( self )
 	-- Keep track of where we are.
