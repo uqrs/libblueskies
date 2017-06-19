@@ -2,7 +2,7 @@
 -- Require appropriate files.
 require("./src/flipnote")
 require("./src/handlers")
-require("./src/indices")
+local meta=require("./src/indices")
 require("./src/debug")
 
 -- Load command line stuff.
@@ -25,31 +25,28 @@ local EPOCH_2000=HANDLERS.MULTI(
 )
 -- Generate a flipnote for this file:
 local test_flipnote=flipnote:new(io.open(arg[1],"r"), true)
+meta(test_flipnote);
 -- Store the header file temporarily.
-local KFH=test_flipnote.header_raw.KFH
+local KFH=test_flipnote.header.KFH
+local KTN=test_flipnote.header_raw.KTN
+local KSN=test_flipnote.header.KSN
 
--- Handle everything manually (to be automated using src/indices.lua)
-rs={
-   header=COPY(KFH:sub(1,8)),
-   crc32=COPY(KFH:sub(9,12)),
-   creation=EPOCH_2000(KFH:sub(13,16)),
-   last_edit=EPOCH_2000(KFH:sub(17,20)),
-   unknown=COPY(KFH:sub(21,24)),
-   creator_id=BIG_ENDIAN(KFH:sub(25,34)),
-   parent_id=BIG_ENDIAN(KFH:sub(35,44)),
-   current_id=BIG_ENDIAN(KFH:sub(45,54)),
-   creator_name=UTF16(KFH:sub(55,76)),
-   parent_name=UTF16(KFH:sub(77,98)),
-   current_name=UTF16(KFH:sub(99,120)),
-   root_file=COPY(KFH:sub(121,148)),
-   parent_file=COPY(KFH:sub(149,176)),
-   current_file=COPY(KFH:sub(177,204)),
-   frames=tonumber(LITTLE_ENDIAN(KFH:sub(205,206))),
-   thumbnail=LITTLE_ENDIAN(KFH:sub(207,208)),
-   flags=COPY(KFH:sub(209,210)),
-   framerate=tonumber(LITTLE_ENDIAN(KFH:sub(211,211))),
-   layer_vis=LITTLE_ENDIAN(KFH:sub(212,212))
-}
+KFH_ORG={}; KSN_ORG={};
+for KEY,VALUE in KFH() do
+	KFH_ORG[KEY]=VALUE;
+end
 
--- And print the entire table.
-print(table.serialise(rs))
+for KEY,VALUE in KSN() do
+	KSN_ORG[KEY]=VALUE;
+end
+
+print(table.serialise(KFH_ORG))
+
+-- This is 4-bit ADPCM @ 16500Hz.
+-- sox -N -t ima -v 1 -r 16500 INPUT_FILE OUTPUT_FILE.wav
+-- Setting -v to the desired volume (.1, .5, 1, 2, 4, etc.)
+local bgm_f=io.open("bgm_data.pcm","w"); bgm_f:write(KSN.bgm_data); bgm_f:close();
+local se1_f=io.open("se1_data.pcm","w"); se1_f:write(KSN.se1_data); se1_f:close();
+local se2_f=io.open("se2_data.pcm","w"); se2_f:write(KSN.se2_data); se2_f:close();
+local se3_f=io.open("se3_data.pcm","w"); se3_f:write(KSN.se3_data); se3_f:close();
+local se4_f=io.open("se4_data.pcm","w"); se4_f:write(KSN.se4_data); se4_f:close();
