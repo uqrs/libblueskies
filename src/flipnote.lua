@@ -2,12 +2,9 @@
 --------------------------------------------------------------------------------------------------------------------------------
 -- Basic Flipnote Object- "kwz" deserialised.
 --------------------------------------------------------------------------------------------------------------------------------
--- The main "kwz" object should aid in properly managing and keeping track of
+-- The main "flipnote" object should aid in properly managing and keeping track of
 -- flipnotes that have been loaded into memory. It shall contain several
 -- methods for loading data from, and deserialising .kwz files into memory.
---
--- No actual decoding is done here- only loading and storing stuff. Though
--- proper encoding shall be implemented utilising ffmpeg.
 --
 -- In the classic lua manner, we declare a singular "object"- a table with
 -- an index field pointing to itself, and a "new" method for generating new
@@ -63,11 +60,6 @@ do
 
 		return magic,tonumber(hex_val);
 	end
---------------------------------------------------------------------------------------------------------------------------------
--- The following table contains numbers corresponding to header types for
--- easy lookup with deserialisation.
---------------------------------------------------------------------------------------------------------------------------------
-	local header_lookup={[1]="KFH",[2]="KTN",[4]="KMC",[8]="KMI",[16]="KSN"};
 --------------------------------------------------------------------------------------------------------------------------------
 -- Loading Flipnotes from File.
 --------------------------------------------------------------------------------------------------------------------------------
