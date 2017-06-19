@@ -34,7 +34,7 @@ For a list of which value corresponds to which field, see `src/indices.lua`.
 ## What is currently being implemented
 The `KMI` header contains frame data separated into 28 bytes for each frame- a new handler shall be written that allows one to
 navigate frame data by `KMI[frame_number].field` and such.
-The `KSN and `KFH` headers are the only two headers that currently have metatables assigned to them- the rest needs be tested still.
+The `KSN` and `KFH` headers are the only two headers that currently have metatables assigned to them- the rest needs be tested still.
 
 `__newindex` metamethods need still be implemented that allow individuals to add/alter data found in the various headers
 (including specialised hooks that modify checksums, header length, etc.) This will be done in the near future.
@@ -44,8 +44,8 @@ The `KSN and `KFH` headers are the only two headers that currently have metatabl
 `stdout` that describes the contents of the `KFH` header.
 
 The PCM data can be wav-ified by using `sox`: `sox -N -t ima -v 1 -r 16500 INPUT_FILE OUTPUT_FILE.wav`
-(seeing `-v` to a real number to use as the volume.) In the current implementation, sox assumes this is 4-bit IMA-ADPCM at
-16.5 kilohertz. This does still sound rather choppy and off- this needs to be fixed.
+(setting `-v` to a real number to use as the volume.) In the current implementation, sox assumes this is `4-bit IMA-ADPCM` at
+`16.5 kilohertz`. This does still sound rather choppy and off- this needs to be fixed.
 
 Note that for the output for the UTF-16 fields on mellowforests' flipnotes, `☆zrms™☆`
 is outputted (the UTF-16 is little-endian). Whereas the `Nintendo 3DS`
