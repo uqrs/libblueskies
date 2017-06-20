@@ -64,5 +64,6 @@ This is noted in the aforementioned file as well.
 ### mellowforests' samples
 The flipnotes used for samples/analysing in `sample/` belong to [mellowforests on deviantart](http://mellowforests.deviantart.com/)
 and [youtube](https://www.youtube.com/user/Blueskiez14) ("Z", Zara, etc.). The animations (but not the music or sound) contained within belong to them (even if nobody can actually see them
-appropriately, yet.) When redistributing these for any reason whatsoever- attribute these to [mellowforests](http://mellowforests.deviantart.com/).
+appropriately, yet.) When redistributing these for any reason whatsoever- attribute the
+__animations__ (contents of the entire file, sans anything included in the `KSN` header to [mellowforests](http://mellowforests.deviantart.com/).
 You shall not claim these for yourself.
