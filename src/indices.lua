@@ -63,7 +63,8 @@ local UTF16=HANDLERS.UTF16()
 --------------------------------------------------------------------------------------------------------------------------------
 INDEX.KFH={
 -- IDENTIFIER     OFFSET    LENGTH            HANDLER
-   header       ={0,        8,                COPY          },
+   magic        ={0,        4,                COPY          },
+   length       ={4,        4,                LITTLE_ENDIAN },
    crc32        ={8,        4,                BIG_ENDIAN    },
    creation     ={12,       4,                EPOCH         },
    last_edit    ={16,       4,                EPOCH         },
@@ -95,7 +96,8 @@ INDEX.KFH={
 --------------------------------------------------------------------------------------------------------------------------------
 INDEX.KTN={
 -- IDENTIFIER     OFFSET    LENGTH            HANDLER
-   header       ={0,        8,                COPY          },
+   magic        ={0,        4,                COPY          },
+   length       ={4,        4,                LITTLE_ENDIAN },
    unknown      ={8,        4,                COPY          },
    jpg          ={12,       4,                COPY          }
 }
@@ -118,7 +120,8 @@ INDEX.KTN={
 --------------------------------------------------------------------------------------------------------------------------------
 INDEX.KSN={
 -- IDENTIFIER     OFFSET     LENGTH            HANDLER
-   header       ={0,         8,                COPY          },
+   magic        ={0,         4,                COPY          },
+   length       ={4,         4,                LITTLE_ENDIAN },
    speed        ={8,         4,                COPY          },
    bgm_length   ={12,        4,                LITTLE_ENDIAN },
    se1_length   ={16,        4,                LITTLE_ENDIAN },
@@ -141,7 +144,8 @@ INDEX.KSN={
 --------------------------------------------------------------------------------------------------------------------------------
 INDEX.KMC={
 -- IDENTIFIER     OFFSET    LENGTH            HANDLER
-   header       ={0,        8,                COPY          },
+   magic        ={0,        4,                COPY          },
+   length       ={4,        4,                LITTLE_ENDIAN },
    unknown      ={8,        4,                COPY          },
    data         ={12,       nil,              COPY          }
 }
@@ -167,13 +171,19 @@ INDEX.KMC={
 -- 23      1            Sound Effect Flags             To be deciphered(?)                    se_flags
 -- 24      4            Camera Usage                   No: 0x0000; Yes: 0x0700;               camera
 --------------------------------------------------------------------------------------------------------------------------------
--- INDEX.KMI repeats itself- For INDEX.KMI[n] offsets every single value appearing in INDEX.KMI[n] with by 28 bytes (meaning
--- INDEX.KMI[1] holds the first frames' data- INDEX.KMI[2] holds the seconds frames' data, etc.) The "half byte" (.5
--- offsets/lengths) count as 4 bits, and they will be parsed as such.
+-- Everything after KMI's header/length repeats itself- For INDEX.KMI[n] offsets every single value appearing in INDEX.KMI[n]
+-- with by 28 bytes (meaning INDEX.KMI[1] holds the first frames' data- INDEX.KMI[2] holds the seconds frames' data, etc.) The
+-- "half byte" (.5 offsets/lengths) count as 4 bits, and they will be parsed as such.
 --------------------------------------------------------------------------------------------------------------------------------
-INDEX.KMI={}; INDEX.KMI[1]={
+INDEX.KMI={
 -- IDENTIFIER     OFFSET    LENGTH            HANDLER
-	unknown      ={0,        .5,               COPY,         },
+   magic        ={0,        4,                COPY          },
+   length       ={4,        4,                LITTLE_ENDIAN },
+}
+
+INDEX.KMI_FRAMES={
+-- IDENTIFIER     OFFSET    LENGTH            HANDLER
+   unknown      ={0,        .5,               COPY,         },
 	colour       ={.5,       .5,               LITTLE_ENDIAN }, -- Not sure on handler- needs be verified.
 	lA_c1        ={1,        .5,               LITTLE_ENDIAN }, -- Ditto.
 	lA_c2        ={1.5,      .5,               LITTLE_ENDIAN }, -- Ditto.
@@ -219,7 +229,7 @@ local META={};
 --------------------------------------------------------------------------------------------------------------------------------
 local function get_olh ( self , index );
 	-- Get a reference to the appropriate INDEX table.
-   local reference=INDEX[lookup[self].header];
+	local reference=INDEX[lookup[self].consult or lookup[self].header];
 
 	-- Does the index even exist?
 	-- If not- it's gonna be a nil.
@@ -248,7 +258,6 @@ local function get_olh ( self , index );
 
 	return offset,length,handler;
 end
-
 --------------------------------------------------------------------------------------------------------------------------------
 -- "standard" is pretty normal- __index looks through its associated header file for the field that's supposed to be accessed,
 -- and then uses the offset and length to return the appropriate field.
@@ -259,6 +268,8 @@ function META.STANDARD.__index ( self , index )
 	local header=lookup[self].flipnote.header_raw[lookup[self].header];
 	local flipnote=lookup[self].flipnote;
 	local raw=false; nocache=false;
+	-- If there's an extra offset:
+	local extra_offset=lookup[self].offset or 0;
 	-- Does the 'index' end in '_nocache'? If so, set 'nocache' to true and remove it from the index field.
 	if ( index:find("_nocache$") ) then; nocache=true; index=index:gsub("_nocache$",""); end;
 	if ( lookup[self].cache[index] and (not nocache) ) then return lookup[self].cache[index] end;
@@ -269,7 +280,11 @@ function META.STANDARD.__index ( self , index )
 	-- If we're supposed to be using a raw handler, set it to COPY:
 	handler=((not raw) and handler) or COPY
 	-- If the offset is 'nil', then this field does not exist:
-	if ( not offset ) then return nil end
+	if ( not offset ) then
+		return nil
+	else
+		offset=offset+extra_offset;
+	end
 
 	-- Cache the retrieved value:
 	lookup[self].cache[index]=handler(header:sub(offset,offset+length));
@@ -292,7 +307,62 @@ function META.STANDARD.__call ( self )
 	end
 end
 --------------------------------------------------------------------------------------------------------------------------------
-local metamap={KFH=META.STANDARD,KSN=META.STANDARD};
+-- KMI - Memo Info Handler
+--------------------------------------------------------------------------------------------------------------------------------
+-- A metamethod to be assigned to a KMI header that, when accessed with any integer larger than 0, returns a special subtable
+-- that, when indexed for any of the values found in META.KMI[1], returns the given value for the appropriate frame.
+--------------------------------------------------------------------------------------------------------------------------------
+META.MEMOINFO={};
+function META.MEMOINFO.__index ( self , index )
+   -- If the given index isn't a number, forward it to the standard metamethod.
+   if ( type(index) ~= "number" ) then
+      return META.STANDARD.__index(self,index);
+   end
+
+   -- Does a frame table already exist? If so, don't bother generating a new one.
+   if ( lookup[self].cache[index] ) then
+      return lookup[self].cache[index];
+   end
+
+   -- If there's no lookup for frame data length, generate and store it:
+   if ( not lookup[self].frames ) then
+      -- Grab the KMI length, and divide it by '28' (which is the amount of data reserved for every frame.)
+      lookup[self].frames=(self.length / 28)
+   end
+
+   -- If the indexed number is either below 1, or above the amount of frames:
+   if ( (index > lookup[self].frames) or (index < 1) ) then
+      -- Return nil. That'll show them.
+      return nil;
+   end
+
+   -- Else, return a table not unlike the KSN and KFH ones- each returning the appropriate data for the indexed fields.
+   -- To all of these, the following offset is applied to the existing one: '8 + ((index-1) * 28)'. The first '8' would is to
+   -- skip over the magic-length found at the very start. The latter part of the calculation points the metatable to the
+   -- appropriate 28-byte wide block in the KMI header.
+   do
+      -- Generate a table bound to metatable META.STANDARD.
+      local frame_table=setmetatable({},META.STANDARD)
+      -- Add a lookup entry for this frame table, including an appropriate byte offset.
+      lookup[frame_table]={
+         -- Refer to the flipnote the KMI header refers to.
+         flipnote=lookup[self].flipnote,
+         -- Set the proper header index to the one containing frame data indices:
+         header="KMI",
+         -- Consult KMI_FRAMES for indices, not KMI.
+         consult="KMI_FRAMES",
+         cache={},
+         -- Always head to the appropriate 28-character long block of pixels.
+         offset=(8+(index-1)*28),
+      };
+      -- Generate a cache entry for this frame table:
+      lookup[self].cache[index]=frame_table
+      -- Return this frame table:
+      return frame_table;
+   end;
+end
+--------------------------------------------------------------------------------------------------------------------------------
+local metamap={KFH=META.STANDARD,KSN=META.STANDARD,KMC=META.STANDARD,KMI=META.MEMOINFO};
 --------------------------------------------------------------------------------------------------------------------------------
 -- Binding Function
 --------------------------------------------------------------------------------------------------------------------------------
@@ -324,7 +394,7 @@ local function flipnote_headermeta ( flipnote )
 		-- Begin assigning metatables:
 		for header,metatable in pairs(metamap) do
 			flipnote.header[header]=setmetatable({},metatable);
-			lookup[flipnote.header[header]]={flipnote=flipnote;header=header,cache={}};
+			lookup[flipnote.header[header]]={flipnote=flipnote,header=header,cache={},offset=0};
 		end
 	end -- End local block
 end

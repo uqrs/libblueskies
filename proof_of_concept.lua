@@ -30,6 +30,7 @@ meta(test_flipnote);
 local KFH=test_flipnote.header.KFH
 local KTN=test_flipnote.header_raw.KTN
 local KSN=test_flipnote.header.KSN
+local KMI=test_flipnote.header.KMI
 
 KFH_ORG={}; KSN_ORG={};
 for KEY,VALUE in KFH() do
@@ -41,6 +42,9 @@ for KEY,VALUE in KSN() do
 end
 
 print(table.serialise(KFH_ORG))
+
+print(KMI.length)
+print(KMI[1].author)
 
 -- This is 4-bit ADPCM @ 16500Hz.
 -- sox -N -t ima -v 1 -r 16500 INPUT_FILE OUTPUT_FILE.wav
