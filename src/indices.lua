@@ -65,13 +65,13 @@ INDEX.KFH={
 -- IDENTIFIER     OFFSET    LENGTH            HANDLER
    magic        ={0,        4,                COPY          },
    length       ={4,        4,                LITTLE_ENDIAN },
-   crc32        ={8,        4,                BIG_ENDIAN    },
+   crc32        ={8,        4,                LITTLE_ENDIAN },
    creation     ={12,       4,                EPOCH         },
    last_edit    ={16,       4,                EPOCH         },
-   unknown      ={20,       4,                COPY          },
-   creator_id   ={24,       10,               BIG_ENDIAN    },
-   parent_id    ={34,       10,               BIG_ENDIAN    },
-   current_id   ={44,       10,               BIG_ENDIAN    },
+   unknown      ={20,       4,                LITTLE_ENDIAN },
+   creator_id   ={24,       10,               LITTLE_ENDIAN },
+   parent_id    ={34,       10,               LITTLE_ENDIAN },
+   current_id   ={44,       10,               LITTLE_ENDIAN },
    creator_name ={54,       22,               UTF16         },
    parent_name  ={76,       22,               UTF16         },
    current_name ={98,       22,               UTF16         },
@@ -98,7 +98,7 @@ INDEX.KTN={
 -- IDENTIFIER     OFFSET    LENGTH            HANDLER
    magic        ={0,        4,                COPY          },
    length       ={4,        4,                LITTLE_ENDIAN },
-   unknown      ={8,        4,                COPY          },
+   unknown      ={8,        4,                LITTLE_ENDIAN },
    jpg          ={12,       4,                COPY          }
 }
 --------------------------------------------------------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ INDEX.KMI={
 
 INDEX.KMI_FRAMES={
 -- IDENTIFIER     OFFSET    LENGTH            HANDLER
-   unknown      ={0,        .5,               COPY,         },
+   unknown      ={0,        .5,               COPY          },
 	colour       ={.5,       .5,               LITTLE_ENDIAN }, -- Not sure on handler- needs be verified.
 	lA_c1        ={1,        .5,               LITTLE_ENDIAN }, -- Ditto.
 	lA_c2        ={1.5,      .5,               LITTLE_ENDIAN }, -- Ditto.
@@ -244,8 +244,8 @@ local function get_olh ( self , index );
 	-- If the length is a string, then it will assume the numerical value outputted by the contents of the index referred to by
 	-- the string. If the length is nil, then assume it's the rest of the header.
 	if ( type(length) == "string" ) then; length=tonumber(self[length]);
-	elseif ( length == nil        ) then; length=header:len()-offset-1;
-	else --[[ not a string or nil]]     ; length=length-1; end;
+	elseif ( length == nil        ) then; length=math.abs(header:len()-offset-1);
+	else --[[ not a string or nil]]     ; length=math.abs(length-1); end;
 	-- If the offset is a string, then it will assume this field directly succeeds the field referred to by the string.
 	if ( type(offset) == "string" ) then;
 		-- This block attempts to deduce where the offset should be, based on the offsets and values before it.
@@ -286,10 +286,57 @@ function META.STANDARD.__index ( self , index )
 		offset=offset+extra_offset;
 	end
 
-	-- Cache the retrieved value:
-	lookup[self].cache[index]=handler(header:sub(offset,offset+length));
-	-- And return it.
-	return lookup[self].cache[index];
+   -- Sometimes (like with KMI's frame data), half bits must be interpreted.
+   -- To deal with this, the offset is rounded down, and the length is rounded up. The resulting margins are used to retrieve
+   -- the appropriate string of characters. Then, the two floats from the offset/length are used to cut off part of the first/final ---- byte.
+   local offset_f,length_f;
+   -- Split the integer and fractional part of the offset and length.
+   offset,offset_f=math.modf(offset);
+   length,length_f=math.modf(length);
+   -- If either fractional is not 0, then start doing special stuff:
+   if ( (length_f ~= 0) or (offset_f ~= 0) ) then
+      -- Make sure both fractionals are divisible by .125:
+      if ( ((length_f*1000)%125)~=0 or ((offset_f*1000)%125)~=0 ) then
+         error("invalid length/offset: must be divisible by .125")
+      end
+      -- Retrieve the appropriate header.
+      header=header:sub(math.floor(offset),math.ceil(offset+length));
+      -- If the offset has a float:
+		print(offset_f,length_f)
+		print(header:byte())
+      if ( offset_f ~= 0 ) then
+         -- What to replace the character with: /just/ the least significant bits of the first character.
+         local replacewith=string.char(bit32.extract(header:sub(1,1):byte(),0,(offset_f/.125)-1))
+			print(bit32.extract(header:sub(1,1):byte(),0,(offset_f/.125)-1))
+         header=header:gsub(
+            -- Replace the very first character,
+            "^.",
+            -- If the character happens to be '%':
+            (replacewith=="%" and "%%") or replacewith
+         )
+      end
+      -- Else, if the length is a float (and this header is longer than one byte)
+      if ( (length_f ~= 0) and header:len()>1 ) then
+         -- What to replace the character with: /just/ the most significant bits of said final character.
+         local replacewith=string.char(bit32.extract(header:sub(-1,-1):byte(),4,4+(length_f/.125)))
+			header=header:gsub(
+            -- Replace the very last character,
+            ".$",
+            -- If the character happens to be '%':
+            (replacewith=="%" and "%%") or replacewith
+         )
+      end
+		-- Cache the retrieved value:
+		lookup[self].cache[index]=handler(header);
+		-- And return it.
+		return lookup[self].cache[index];
+	-- Else, it's a boring whole value.
+	else
+		-- Cache the retrieved value:
+		lookup[self].cache[index]=handler(header:sub(offset,offset+length));
+		-- And return it.
+		return lookup[self].cache[index];
+	end
 end
 --------------------------------------------------------------------------------------------------------------------------------
 -- Iterating Over Indices
@@ -298,7 +345,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------
 function META.STANDARD.__call ( self )
 	-- Keep track of where we are.
-	local reference=(INDEX[lookup[self].header]);
+	local reference=(INDEX[lookup[self].consult or lookup[self].header]);
 	local current=nil;
 	-- Keep returning the next value until we're through.
 	return function ()
@@ -362,14 +409,14 @@ function META.MEMOINFO.__index ( self , index )
    end;
 end
 --------------------------------------------------------------------------------------------------------------------------------
-local metamap={KFH=META.STANDARD,KSN=META.STANDARD,KMC=META.STANDARD,KMI=META.MEMOINFO};
+local metamap={KFH=META.STANDARD,KSN=META.STANDARD,KTN=META.STANDARD,KMC=META.STANDARD,KMI=META.MEMOINFO};
 --------------------------------------------------------------------------------------------------------------------------------
 -- Binding Function
 --------------------------------------------------------------------------------------------------------------------------------
 -- Generates two unique metatables- one that is to be assigned to the flipnotes' 'header' table (hub). This 'header'
 -- table returns another metatable (branch) that:
 --		Deciphers which index 'hub' was accessed for.
---		It takes thi s index, and looks for the appropriate listing in INDEX (e.g. hub.KFH => INDEX.KFH).
+--		It takes this index, and looks for the appropriate listing in INDEX (e.g. hub.KFH => INDEX.KFH).
 --		It returns a metatable 'branch' that- when indexed for a value, looks through the earlier specified INDEX listing for the
 --			corresponding field (e.g. hub.KFH.thumbnail => INDEX.KFH.thumbnail).
 --		The corresponding INDEX listing holds the BYTE OFFSET, LENGTH, and HANDLER (int, int, function).

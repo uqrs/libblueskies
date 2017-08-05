@@ -84,7 +84,7 @@ do
 			-- Parse the appropriate magic and header.
 			magic,length=parse_header(full:sub(current_position,current_position+7))
 			-- Load the entirety of this section into memory:
-			self.header_raw[magic]=full:sub(current_position,current_position+length+8);
+			self.header_raw[magic]=full:sub(current_position,current_position+length+7);
 			-- And skip to the next position.
 			current_position=current_position+length+8
 		until (current_position >= content_length)
