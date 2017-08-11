@@ -1,16 +1,16 @@
 --------------------------------------------------------------------------------------------------------------------------------
 -- File Content Handlers
 --------------------------------------------------------------------------------------------------------------------------------
--- The "HANDLER_LOCAL" table contains a bunch of function pointers that accept arguments, and return arbitrary data. Further
--- down, gen_handler() generated wrapper functions for these handlers- a feature that src/indices.lua makes use of.
+-- The "HANDLER_PROTO" table contains a bunch of function pointers that accept arguments, and return arbitrary data. Further
+-- down, gen_handler() generates wrapper functions for these handlers- a feature that src/indices.lua makes use of.
 --------------------------------------------------------------------------------------------------------------------------------
-do; local HANDLERS_LOCAL={}
+do; local HANDLERS_PROTO={}
 --------------------------------------------------------------------------------------------------------------------------------
--- Handler - Multi
+-- Handler - Chain
 --------------------------------------------------------------------------------------------------------------------------------
 -- Takes any amount of handler objects, and passes the input throughout other handlers.
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_LOCAL.MULTI ( input , ... )
+	function HANDLERS_PROTO.CHAIN ( input , ... )
 		local last_output=input;
 		for _,handler in pairs({...}) do
 			last_output=handler(last_output);
@@ -22,7 +22,7 @@ do; local HANDLERS_LOCAL={}
 --------------------------------------------------------------------------------------------------------------------------------
 -- Literally copies data from one end to another.
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_LOCAL.COPY ( input )
+	function HANDLERS_PROTO.COPY ( input )
 		return input
 	end;
 --------------------------------------------------------------------------------------------------------------------------------
@@ -30,14 +30,14 @@ do; local HANDLERS_LOCAL={}
 --------------------------------------------------------------------------------------------------------------------------------
 -- Return the total amount of seconds since 1970 + since
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_LOCAL.EPOCH ( input , since )
+	function HANDLERS_PROTO.EPOCH ( input , since )
 		if ( not since ) then; since=0; end
 		return os.date("*t",tonumber(input)+since)
 	end
 --------------------------------------------------------------------------------------------------------------------------------
 -- Handler - UTF-16 display name.
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_LOCAL.UTF16 ( input )
+	function HANDLERS_PROTO.UTF16 ( input )
 		local full="";
 		-- Go from the last pair of bytes to the very first:
 		for i = input:len(),1,-2 do
@@ -52,7 +52,7 @@ do; local HANDLERS_LOCAL={}
 -- 'true', then the output will be a hexidecimal digit. If set to 'false', it will return the number as an integer. If
 -- 'prefix' is set to 'true', "0x" is prepended to the output.
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_LOCAL.ENDIAN ( input , endianness , hexify , prefix )
+	function HANDLERS_PROTO.ENDIAN ( input , endianness , hexify , prefix )
 		local full="";
 		-- Determine from where to where the for loop should go:
 		local start,stop,interval;
@@ -84,7 +84,7 @@ do; local HANDLERS_LOCAL={}
 			local which=index;
 			-- Return a function that calls the handler with the appropriate arguments.
 			return function ( input )
-				return HANDLERS_LOCAL[which]( input , table.unpack(arguments) )
+				return HANDLERS_PROTO[which]( input , table.unpack(arguments) )
 			end
 		end; end
 	end;

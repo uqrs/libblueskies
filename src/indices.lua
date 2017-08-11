@@ -29,7 +29,7 @@ local INDEX={};
 --------------------------------------------------------------------------------------------------------------------------------
 -- Generate all of the handlers that will be utilised in this file:
 --------------------------------------------------------------------------------------------------------------------------------
-local EPOCH=HANDLERS.MULTI(
+local EPOCH=HANDLERS.CHAIN(
    HANDLERS.ENDIAN("little",true,true),
    HANDLERS.EPOCH(946681200)
 )
