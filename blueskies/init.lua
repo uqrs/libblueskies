@@ -3,8 +3,9 @@
 --------------------------------------------------------------------------------------------------------------------------------
 do
 	Blueskies={};
-   require("blueskies.flipnote");
-	require("blueskies.handlers");
-	require("blueskies.indices");
-	require("blueskies.crc32");
+   Blueskies.flipnote=require("blueskies.flipnote");
+	Blueskies.handlers=require("blueskies.handlers");
+	Blueskies.reference=require("blueskies.reference");
+	Blueskies.flipnote.meta=require("blueskies.meta");
+	Blueskies.crc32=require("blueskies.crc32");
 end;

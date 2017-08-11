@@ -54,7 +54,7 @@ Whenever this `header` table (henceforth referred to as `hub`) is indexed for th
 an individual file section, _generates_ a table along with a metatable, and
 then returns this as `branch`. `branch`'s metatable makes it so that - when
 it is indexed for a value - a _reference table_ with its name corresponding
-to the `.kwz` file section `branch` is bound to located in `blueskies/indices.lua`
+to the `.kwz` file section `branch` is bound to located in `blueskies/reference.lua`
 is consulted. This reference table contains `keys`, each with an individual
 table assigned as its value. This table contains a `byte offset` (`o`), a `value
 length` (in bytes, `l`), and a `handler` (`h`). Whenever `branch` is indexed for a
@@ -65,7 +65,7 @@ section is retrieved, and passed to `h`. `branch` finally returns whatever `h` s
 ### An Example - Basic Data Reading
 A `branch` bound to `KFH` is indexed for the value `creator_name`. This
 branch's `__index` metamethod is invoked, causing it to consult the
-`INDEX.KFH` table located in `blueskies/indices.lua` for the key `creator_name`.
+`INDEX.KFH` table located in `blueskies/reference.lua` for the key `creator_name`.
 It finds a table describing an offset of `54`, a length of `22`, and the
 `utf16` handler. It goes to the `KFH` header located in `self.header_raw`-
 `self.header_raw.KFH`, and retrieves bytes `55` to `76` from the string
@@ -89,7 +89,7 @@ to be whatever the handler for `kp` returns.
 ### An Example - Indexing With Variable Length/Offset
 A `branch` bound to `KSN` is indexed for the value `se1_data`. This branch's
 `__index` metamethod is invoked, causing it to consult the `INDEX.KSN` table
-located in `blueskies/indices.lua` for the key `se1_data`. It finds a table with
+located in `blueskies/reference.lua` for the key `se1_data`. It finds a table with
 the offset describing `bgm_data`, and a length describing `se1_length`.
 
 First, to calculate the offset, it looks at the reference for the variable

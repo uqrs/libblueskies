@@ -1,4 +1,5 @@
 #!/usr/bin/lua
+require("blueskies.debug");
 require("blueskies");
 
 -- Load command line stuff.
@@ -21,7 +22,7 @@ local KMI_raw=test_flipnote.header_raw.KMI
 local KSN_raw=test_flipnote.header_raw.KSN
 local KFH_raw=test_flipnote.header_raw.KFH
 
-KFH_ORG={}; KSN_ORG={};
+local KFH_ORG={}; local KSN_ORG={};
 for KEY,VALUE in KFH() do
 	KFH_ORG[KEY]=VALUE;
 end

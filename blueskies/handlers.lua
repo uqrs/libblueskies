@@ -78,20 +78,22 @@ do; local handlers_proto={}
 -- accepts arguments, and then returns a function pointer to a handler function that has been generated on-the-fly.
 --------------------------------------------------------------------------------------------------------------------------------
 	local function gen_handler ( self , index )
-		return function ( ... ) do
-			-- Keep the arguments and index safe.
-			local arguments={...};
-			local which=index;
-			-- Ensure this handler even exists (if not, throw an error):
-			if ( not handlers_proto[which] ) then
-				error("no such handler prototype '" .. which .. "'",2);
-			end
+		return function ( ... )
+			do
+				-- Keep the arguments and index safe.
+				local arguments={...};
+				local which=index;
+				-- Ensure this handler even exists (if not, throw an error):
+				if ( not handlers_proto[which] ) then
+					error("no such handler prototype '" .. which .. "'",2);
+				end
 
-			-- Return a function that calls the handler with the appropriate arguments.
-			return function ( input )
-				return handlers_proto[which]( input , table.unpack(arguments) )
-			end
-		end; end
+				-- Return a function that calls the handler with the appropriate arguments.
+				return function ( input )
+					return handlers_proto[which]( input , table.unpack(arguments) )
+				end
+			end;
+		end;
 	end;
-	Blueskies.handlers=setmetatable({},{__index=gen_handler});
+	return setmetatable({},{__index=gen_handler});
 end
