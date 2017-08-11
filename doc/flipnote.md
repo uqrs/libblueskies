@@ -88,7 +88,7 @@ to be whatever the handler for `kp` returns.
 
 ### An Example - Indexing With Variable Length/Offset
 A `branch` bound to `KSN` is indexed for the value `se1_data`. This branch's
-`__index` metamethod is invoked, causing it to consuld the `INDEX.KSN` table
+`__index` metamethod is invoked, causing it to consult the `INDEX.KSN` table
 located in `src/indices.lua` for the key `se1_data`. It finds a table with
 the offset describing `bgm_data`, and a length describing `se1_length`.
 
@@ -143,8 +143,8 @@ Prototypes are declared in `src/handlers.lua` as regular lua functions,
 accepting arguments only concerning their own execution. These functions are
 all stored in the `HANDLERS_PROTO` table. A globally accessible table-
 `HANDLERS` remains empty, but has a metatable assigned to it that returns a
-function `gen_handler()` when indexed for 'n'.
-`gen_handler()` accepts any amount of arguments-` these arguments have a
+function `gen_handler()` when indexed for `n`.
+`gen_handler()` accepts any amount of arguments- these arguments have a
 `n to n+1` correspondence with the arguments accepted by
 `HANDLERS_PROTO[h]`. This means that the first argument supplied to
 `gen_handler()`, corresponds to the second argument accepted by
@@ -155,10 +155,10 @@ wrapper function- whenever called, executes the function
 `gen_handler()`.
 
 An example- The `HANDLERS_PROTO.ENDIAN()` function accepts a multitude of
-variables- to simplify this example, only the first two shall be focused
+variables- to simplify this example, only the first two shall be elaborated
 upon. The first, `input`, related to the sequence of bytes that must be
 parsed and interpreted as a number. The second, `endianness` corresponds to
-either one of two strings- "big" or "little".
+either one of two strings- `"big"` or `"little"`.
 
 When calling `HANDLERS.ENDIAN("big")`, `gen_handler()` is invoked.
 `gen_handler()` stores the string `"big"` in a local variable, and then
