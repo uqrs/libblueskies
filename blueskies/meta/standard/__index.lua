@@ -2,7 +2,7 @@ local lookup=_lookup;
 local blueskies_index=_index
 local blueskies_static=Blueskies;
 --------------------------------------------------------------------------------------------------------------------------------
--- The `__call` metamethod does all of the dirty work- it does the job of consulting the reference table
+-- The `__index` metamethod does all of the dirty work- it does the job of consulting the reference table
 -- (`Blueskies.reference`) for the correct byte offsets, and then starts pulling them out of the raw headers.
 --------------------------------------------------------------------------------------------------------------------------------
 return function ( self , index )
@@ -19,8 +19,6 @@ return function ( self , index )
 	if ( index:find("_raw$") ) then; raw=true; index=index:gsub("_raw$",""); end;
 	-- Retrieve the offset, length, and handler:
 	local offset,length,handler=blueskies_index.get_olh(self,index);
-	-- If we're supposed to be using a raw handler, set it to COPY:
-	handler=((not raw) and handler) or COPY
 	-- If the offset is 'nil', then this field does not exist:
 	if ( not offset ) then
 		return nil
@@ -69,13 +67,21 @@ return function ( self , index )
          )
       end
 		-- Cache the retrieved value:
-		lookup[self].cache[index]=handler(header);
+		if ( raw ) then
+			lookup[self].cache[index]=header;
+		else
+			lookup[self].cache[index]=handler(header);
+		end
 		-- And return it.
 		return lookup[self].cache[index];
 	-- Else, it's a boring whole value.
 	else
 		-- Cache the retrieved value:
-		lookup[self].cache[index]=handler(header:sub(offset,offset+length));
+		if ( raw ) then
+			lookup[self].cache[index]=header:sub(offset,offset+length);
+		else
+			lookup[self].cache[index]=handler(header:sub(offset,offset+length));
+		end
 		-- And return it.
 		return lookup[self].cache[index];
 	end
