@@ -29,14 +29,14 @@ local INDEX={};
 --------------------------------------------------------------------------------------------------------------------------------
 -- Generate all of the handlers that will be utilised in this file:
 --------------------------------------------------------------------------------------------------------------------------------
-local EPOCH=HANDLERS.CHAIN(
-   HANDLERS.ENDIAN("little",true,true),
-   HANDLERS.EPOCH(946681200)
+local EPOCH=Blueskies.handlers.chain(
+   Blueskies.handlers.endian("little",true,true),
+   Blueskies.handlers.epoch(946681200)
 )
-local COPY=HANDLERS.COPY()
-local BIG_ENDIAN=HANDLERS.ENDIAN("big",true,true)
-local LITTLE_ENDIAN=HANDLERS.ENDIAN("little",true,true)
-local UTF16=HANDLERS.UTF16()
+local COPY=Blueskies.handlers.copy()
+local BIG_ENDIAN=Blueskies.handlers.endian("big",true,true)
+local LITTLE_ENDIAN=Blueskies.handlers.endian("little",true,true)
+local UTF16=Blueskies.handlers.utf16()
 --------------------------------------------------------------------------------------------------------------------------------
 -- File Header Data -- CC-BY-SA 4.0 applies to this comment block.
 --------------------------------------------------------------------------------------------------------------------------------
@@ -433,17 +433,15 @@ local metamap={KFH=META.STANDARD,KSN=META.STANDARD,KTN=META.STANDARD,KMC=META.ST
 -- Declare a lookup table that the metamethods in the metamap can look through to decipher which header and flipnote they're
 -- looking for.
 --------------------------------------------------------------------------------------------------------------------------------
-local function flipnote_headermeta ( flipnote )
+function Blueskies.flipnote:meta_init ()
 	do -- Start a local block where we declare a hidden 'self' variable so that the __index or __newindex methods know where to
 		-- look.
 		-- Now, populate the flipnotes' 'header' table:
-		flipnote.header={};
+		self.header={};
 		-- Begin assigning metatables:
 		for header,metatable in pairs(metamap) do
-			flipnote.header[header]=setmetatable({},metatable);
-			lookup[flipnote.header[header]]={flipnote=flipnote,header=header,cache={},offset=0};
+			self.header[header]=setmetatable({},metatable);
+			lookup[self.header[header]]={flipnote=self,header=header,cache={},offset=0};
 		end
 	end -- End local block
 end
-
-return flipnote_headermeta;

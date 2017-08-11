@@ -4,13 +4,13 @@
 -- The "HANDLER_PROTO" table contains a bunch of function pointers that accept arguments, and return arbitrary data. Further
 -- down, gen_handler() generates wrapper functions for these handlers- a feature that src/indices.lua makes use of.
 --------------------------------------------------------------------------------------------------------------------------------
-do; local HANDLERS_PROTO={}
+do; local handlers_proto={}
 --------------------------------------------------------------------------------------------------------------------------------
 -- Handler - Chain
 --------------------------------------------------------------------------------------------------------------------------------
 -- Takes any amount of handler objects, and passes the input throughout other handlers.
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_PROTO.CHAIN ( input , ... )
+	function handlers_proto.chain ( input , ... )
 		local last_output=input;
 		for _,handler in pairs({...}) do
 			last_output=handler(last_output);
@@ -22,7 +22,7 @@ do; local HANDLERS_PROTO={}
 --------------------------------------------------------------------------------------------------------------------------------
 -- Literally copies data from one end to another.
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_PROTO.COPY ( input )
+	function handlers_proto.copy ( input )
 		return input
 	end;
 --------------------------------------------------------------------------------------------------------------------------------
@@ -30,14 +30,14 @@ do; local HANDLERS_PROTO={}
 --------------------------------------------------------------------------------------------------------------------------------
 -- Return the total amount of seconds since 1970 + since
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_PROTO.EPOCH ( input , since )
+	function handlers_proto.epoch ( input , since )
 		if ( not since ) then; since=0; end
 		return os.date("*t",tonumber(input)+since)
 	end
 --------------------------------------------------------------------------------------------------------------------------------
 -- Handler - UTF-16 display name.
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_PROTO.UTF16 ( input )
+	function handlers_proto.utf16 ( input )
 		local full="";
 		-- Go from the last pair of bytes to the very first:
 		for i = input:len(),1,-2 do
@@ -52,7 +52,7 @@ do; local HANDLERS_PROTO={}
 -- 'true', then the output will be a hexidecimal digit. If set to 'false', it will return the number as an integer. If
 -- 'prefix' is set to 'true', "0x" is prepended to the output.
 --------------------------------------------------------------------------------------------------------------------------------
-	function HANDLERS_PROTO.ENDIAN ( input , endianness , hexify , prefix )
+	function handlers_proto.endian ( input , endianness , hexify , prefix )
 		local full="";
 		-- Determine from where to where the for loop should go:
 		local start,stop,interval;
@@ -82,11 +82,16 @@ do; local HANDLERS_PROTO={}
 			-- Keep the arguments and index safe.
 			local arguments={...};
 			local which=index;
+			-- Ensure this handler even exists (if not, throw an error):
+			if ( not handlers_proto[which] ) then
+				error("no such handler prototype '" .. which .. "'",2);
+			end
+
 			-- Return a function that calls the handler with the appropriate arguments.
 			return function ( input )
-				return HANDLERS_PROTO[which]( input , table.unpack(arguments) )
+				return handlers_proto[which]( input , table.unpack(arguments) )
 			end
 		end; end
 	end;
-	HANDLERS=setmetatable({},{__index=gen_handler});
+	Blueskies.handlers=setmetatable({},{__index=gen_handler});
 end

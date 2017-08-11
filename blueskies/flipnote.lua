@@ -9,21 +9,27 @@
 -- an index field pointing to itself, and a "new" method for generating new
 -- objects. This should all be fairly obvious to regular Lua programmers.
 --------------------------------------------------------------------------------------------------------------------------------
-flipnote={};
-flipnote.__index=flipnote;
-flipnote.header_raw={};
+Blueskies.flipnote={};
+Blueskies.flipnote.__index=Blueskies.flipnote;
+Blueskies.flipnote.header_raw={};
 --------------------------------------------------------------------------------------------------------------------------------
 -- If 'file' is specified, then the data will be loaded from the given file
 -- handle/process. If 'init' is either nil or true and file is specified,
 -- then the loaded data will automatically be deserialised.
+--
+-- 'bind', when false, prevents the Flipnote object from being bound to the reference tables located in `src/indices.lua`.
 --------------------------------------------------------------------------------------------------------------------------------
-function flipnote:new ( file , init )
+function Blueskies.flipnote:new ( file , init , bind )
 	-- Create a new object.
 	local object=setmetatable({},self);
 	object.__index=self;
 	-- If "file" is specified, :new will call load_from_file.
 	if ( file ) then
 		object:load( file )
+	end
+
+	if ( (bind == nil) or bind ) then
+		self:meta_init();
 	end
 
 	-- Return it.
@@ -67,7 +73,7 @@ do
 --
 -- "file" is a file handle for a .kwz file or a process.
 --------------------------------------------------------------------------------------------------------------------------------
-	function flipnote:load ( file , which )
+	function Blueskies.flipnote:load ( file )
 		-- Essential assertions:
 		assert(type(file) == "userdata", "expected userdata. Got " .. type(file))
 
@@ -98,7 +104,7 @@ do
 -- utilises the indices specified in src/indices.lua as the second argument to
 -- keep track of what means what.
 --------------------------------------------------------------------------------------------------------------------------------
-	function flipnote:deserialise ( section , index )
+	function Blueskies.flipnote:deserialise ( section , index )
 		-- TO DO
 	end;
 end;
@@ -106,5 +112,5 @@ end;
 --------------------------------------------------------------------------------------------------------------------------------
 -- Framerate lookup table.
 --------------------------------------------------------------------------------------------------------------------------------
-flipnote.framerate={[0]=.2,.5,4,6,8,9,10}
+Blueskies.flipnote.framerate={[0]=.2,.5,4,6,8,9,10}
 --------------------------------------------------------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------------------------------------------------------
 -- Table-Driven CRC32 Implementation. Uses the common, 0xEDB88320
 --------------------------------------------------------------------------------------------------------------------------------
-local CRC32 = {
+local crc32_lookup = {
 	[0]=0,
 	1996959894,
 	3993919788,
@@ -260,14 +260,15 @@ local CRC32 = {
 	755167117
 }
 
-function crc32 ( transmission )
+Blueskies.crc32_lookup=crc32_lookup
+function Blueskies.crc32 ( transmission )
 	local crc = 0xFFFFFFFF;
 	local byte;
 	for i = 0,transmission:len()-1,1 do
 		byte=transmission:byte(i+1);
 		crc = bit32.bxor(
 			bit32.rshift( crc , 8 ),
-			CRC32[
+			crc32_lookup[
 				bit32.band(
 					bit32.bxor( crc , byte ) ,
 					0x000000FF

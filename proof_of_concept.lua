@@ -1,10 +1,5 @@
 #!/usr/bin/lua
--- Require appropriate files.
-require("./src/flipnote")
-require("./src/handlers")
-local meta=require("./src/indices")
-require("./src/debug")
-require("./src/crc32")
+require("blueskies");
 
 -- Load command line stuff.
 local arg={...}
@@ -15,19 +10,9 @@ if ( not arg[1] ) then
 	os.exit()
 end
 
--- Generate appropriate handlers.
-local COPY=HANDLERS.COPY()
-local UTF16=HANDLERS.UTF16()
-local LITTLE_ENDIAN=HANDLERS.ENDIAN("little",true,true)
-local BIG_ENDIAN=HANDLERS.ENDIAN("big",true)
-local EPOCH_2000=HANDLERS.MULTI(
-   HANDLERS.ENDIAN("little",true,true),
-   HANDLERS.EPOCH(946681200)
-)
 -- Generate a flipnote for this file:
-local test_flipnote=flipnote:new(io.open(arg[1],"r"), true)
-meta(test_flipnote);
--- Store the header file temporarily.
+local test_flipnote=Blueskies.flipnote:new(io.open(arg[1],"r"), true)
+-- Store the headers temporarily.
 local KFH=test_flipnote.header.KFH
 local KSN=test_flipnote.header.KSN
 local KMI=test_flipnote.header.KMI
@@ -55,5 +40,5 @@ local se3_f=io.open("se3_data.pcm","w"); se3_f:write(KSN.se3_data); se3_f:close(
 local se4_f=io.open("se4_data.pcm","w"); se4_f:write(KSN.se4_data); se4_f:close(); print("Dumped sound effect 4   to se4_data.pcm");
 local jpg_f=io.open("jpg_data.jpg","w"); jpg_f:write(KTN.jpg);      jpg_f:close(); print("Dumped JPG header data  to jpg_data.jpg");
 
-print("CRC32 as calculated by crc32(): 0x" .. ("%08X"):format(crc32(KFH_raw:sub(13))))
+print("CRC32 as calculated by crc32(): 0x" .. ("%08X"):format(Blueskies.crc32(KFH_raw:sub(13))))
 print("CRC32 as given by KFH         : " .. KFH.crc32)
