@@ -26,63 +26,12 @@ return function ( self , index )
 		offset=offset+extra_offset;
 	end
 
-   -- Sometimes (like with KMI's frame data), half bits must be interpreted.
-   -- To deal with this, the offset is rounded down, and the length is rounded up. The resulting margins are used to retrieve
-   -- the appropriate string of characters. Then, the two floats from the offset/length are used to cut off part of the first/final ---- byte.
-   local offset_f,length_f;
-   -- Split the integer and fractional part of the offset and length.
-   offset,offset_f=math.modf(offset);
-   length,length_f=math.modf(length);
-   -- If either fractional is not 0, then start doing special stuff:
-   if ( (length_f ~= 0) or (offset_f ~= 0) ) then
-      -- Make sure both fractionals are divisible by .125:
-      if ( ((length_f*1000)%125)~=0 or ((offset_f*1000)%125)~=0 ) then
-         error("invalid length/offset: must be divisible by .125")
-      end
-      -- Retrieve the appropriate header.
-      header=header:sub(math.floor(offset),math.ceil(offset+length));
-      -- If the offset has a float:
-		print(offset_f,length_f)
-		print(header:byte())
-      if ( offset_f ~= 0 ) then
-         -- What to replace the character with: /just/ the least significant bits of the first character.
-         local replacewith=string.char(bit32.extract(header:sub(1,1):byte(),0,(offset_f/.125)-1))
-			print(bit32.extract(header:sub(1,1):byte(),0,(offset_f/.125)-1))
-         header=header:gsub(
-            -- Replace the very first character,
-            "^.",
-            -- If the character happens to be '%':
-            (replacewith=="%" and "%%") or replacewith
-         )
-      end
-      -- Else, if the length is a float (and this header is longer than one byte)
-      if ( (length_f ~= 0) and header:len()>1 ) then
-         -- What to replace the character with: /just/ the most significant bits of said final character.
-         local replacewith=string.char(bit32.extract(header:sub(-1,-1):byte(),4,4+(length_f/.125)))
-			header=header:gsub(
-            -- Replace the very last character,
-            ".$",
-            -- If the character happens to be '%':
-            (replacewith=="%" and "%%") or replacewith
-         )
-      end
-		-- Cache the retrieved value:
-		if ( raw ) then
-			lookup[self].cache[index]=header;
-		else
-			lookup[self].cache[index]=handler(header);
-		end
-		-- And return it.
-		return lookup[self].cache[index];
-	-- Else, it's a boring whole value.
+	-- Cache the retrieved value:
+	if ( raw ) then
+		lookup[self].cache[index]=header:sub(offset,offset+length);
 	else
-		-- Cache the retrieved value:
-		if ( raw ) then
-			lookup[self].cache[index]=header:sub(offset,offset+length);
-		else
-			lookup[self].cache[index]=handler(header:sub(offset,offset+length));
-		end
-		-- And return it.
-		return lookup[self].cache[index];
+		lookup[self].cache[index]=handler(header:sub(offset,offset+length));
 	end
+	-- And return it.
+	return lookup[self].cache[index];
 end

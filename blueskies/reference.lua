@@ -28,10 +28,21 @@ local EPOCH=blueskies_static.handlers.chain(
    blueskies_static.handlers.endian("little",true,true),
    blueskies_static.handlers.epoch(946681200)
 )
+local MOST=blueskies_static.handlers.chain(
+	string.byte,
+	blueskies_static.handlers.bits(4,8)
+)
+local LEAST=blueskies_static.handlers.chain(
+	string.byte,
+	blueskies_static.handlers.bits(0,4)
+)
 local COPY=blueskies_static.handlers.copy()
 local BIG_ENDIAN=blueskies_static.handlers.endian("big",true,true)
 local LITTLE_ENDIAN=blueskies_static.handlers.endian("little",true,true)
 local UTF16=blueskies_static.handlers.utf16()
+--------------------------------------------------------------------------------------------------------------------------------
+-- Generate all of the hooks that will be utilised in this file:
+--------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------
 -- File Header Data -- CC-BY-SA 4.0 applies to this comment block.
 --------------------------------------------------------------------------------------------------------------------------------
@@ -178,14 +189,14 @@ REF.KMI={
 
 REF.KMI_FRAMES={
 -- IDENTIFIER     OFFSET    LENGTH            HANDLER
-   unknown      ={0,        .5,               COPY          },
-	colour       ={.5,       .5,               LITTLE_ENDIAN }, -- Not sure on handler- needs be verified.
-	lA_c1        ={1,        .5,               LITTLE_ENDIAN }, -- Ditto.
-	lA_c2        ={1.5,      .5,               LITTLE_ENDIAN }, -- Ditto.
-	lB_c1        ={2,        .5,               LITTLE_ENDIAN }, -- Ditto.
-	lB_c3        ={2.5,      .5,               LITTLE_ENDIAN }, -- Ditto.
-	lC_c1        ={3,        .5,               LITTLE_ENDIAN }, -- Ditto.
-	lC_c3        ={3.5,      .5,               LITTLE_ENDIAN }, -- Ditto
+   unknown      ={0,        1,                MOST          },
+	colour       ={0,        1,                LEAST         },
+	lA_c1        ={1,        1,                MOST          },
+	lA_c2        ={1,        1,                LEAST         },
+	lB_c1        ={2,        1,                MOST          },
+	lB_c3        ={2,        1,                LEAST         },
+	lC_c1        ={3,        1,                MOST          },
+	lC_c3        ={3,        1,                LEAST         },
 	lA_size      ={4,        2,                LITTLE_ENDIAN },
 	lB_size      ={6,        2,                LITTLE_ENDIAN },
 	lC_size      ={8,        2,                LITTLE_ENDIAN },

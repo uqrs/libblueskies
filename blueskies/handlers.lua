@@ -72,6 +72,14 @@ do; local handlers_proto={}
 		return (prefix or "") .. full
 	end
 --------------------------------------------------------------------------------------------------------------------------------
+-- Handler - Bit Extraction
+--------------------------------------------------------------------------------------------------------------------------------
+-- Returns bits 'from' to 'to' as an individual number. Really just a fancy bit32.extract() wrapper.
+--------------------------------------------------------------------------------------------------------------------------------
+	function handlers_proto.bits ( input , from , to )
+		return bit32.extract(input,from,to)
+	end
+--------------------------------------------------------------------------------------------------------------------------------
 -- Meta Handlers
 --------------------------------------------------------------------------------------------------------------------------------
 -- The "handlers" table is what can be accessed globally- it contains a metatable that, when indexed, returns a function that

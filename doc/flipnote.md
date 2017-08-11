@@ -110,16 +110,6 @@ used as the length for `se1_data`. Let's say for example that this length is
 result for `se1_data`.
 
 ## Assorted Misc. Info
-### Reading Half Bytes
-A final exception (which is semi-poorly supported) is when the length or
-offset are decimal values- such as `.5`, or `.125`. If the offset happens to
-have a decimal part (divided into the `integer` part `i`, and `decimal` part `d`- the
-latter of which must - by the way - always be divisible by `.125`. I think
-you can guess why.) then the first `8*d` _bits_ are removed from the final
-sequence of (now bits) that are passed to the handler. If the `length` has a
-decimal part, then the last `8*d` _bits_ are removed from the final sequence
-before they get passed to the handler.
-
 ### Caching
 Considering the fact index calculations can be a bit expensive, values
 retrieved from raw headers are stored in a cache inaccessible from the
