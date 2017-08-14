@@ -7,13 +7,12 @@ Why's it called libblueskies? Well, my initial motivation for making this tool w
 far from viable to employ it for practical use. Bugs are everywhere, it's
 slow (maybe), and badly documented (for now).
 ### Depencencies:
-- Lua 5.3 or higher.
+- Lua 5.3.
 - sox, more likely.
 
 ### Goals:
-- Implement src/indices.lua properly.
-- Finish the binding function.
-- Parse/store the other headers.
+- Finish the `__newindex` metamethod with appropriate safeguarding.
+- Implement hooks to automatically update the checksums/CRC32s/filename upon modification of individual fields.
 - Obviously, we need to decipher whatever kind of video format .kwz files utilise to display content to the screen.
 - Write a sox pseudo-api.
 ## What has been implemented
@@ -34,14 +33,15 @@ for key,value in KFH() do
 end
 ```
 For a list of which value corresponds to which field, see `src/indices.lua`.
-## What is currently being implemented
-The `KMI` header contains frame data separated into 28 bytes for each frame- a new handler shall be written that allows one to
-navigate frame data by `KMI[frame_number].field` and such.
-The `KSN` and `KFH` headers are the only two headers that currently have metatables assigned to them- the rest needs be tested still.
 
-`__newindex` metamethods need still be implemented that allow individuals to add/alter data found in the various headers
-(including specialised hooks that modify checksums, header length, etc.) This will be done in the near future.
-
+One may **assign** new values to existing fields:
+```lua
+KFH.creator_id = "ABCDEFABCDEFABCDEF"
+```
+Note that at this point in time this feature is buggy and unfinished (and
+has yet to be implemented for the `KMI` header). There are no safeguards in
+place- the programmer must (for now) manually ensure the strings are
+properly padded, etc.
 ## proof_of_concept.lua
 `proof_of_concept.lua` accepts a path to a flipnote (handed on the command line), rips the `KSN` data (background music, sound effects, etc.) and outputs these into the files `bgm_data.pcm` and `se{1..4}_data.pcm`. It also prints a serialised lua table to
 `stdout` that describes the contents of the `KFH` header.
