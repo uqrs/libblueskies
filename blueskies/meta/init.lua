@@ -19,12 +19,11 @@ index.meta.memoinfo={};
 index.get_olh=require("blueskies.meta.get_olh");
 index.meta.standard.__index=require("blueskies.meta.standard.__index");
 index.meta.standard.__call=require("blueskies.meta.standard.__call");
---Blueskies.index.meta.standard.__newindex=require("blueskies.meta.standard.__newindex.__newindex"); --TBD
---Blueskies.index.meta.standard.hooks=require("blueskies.meta.standard.__newindex.hooks"); --TBD
+index.meta.standard.__newindex=require("blueskies.meta.standard.__newindex.__newindex");
 index.meta.memoinfo.__index=require("blueskies.meta.memoinfo.__index");
---Blueskies.index.meta.memoinfo.__call=require("blueskies.meta.memoinfo.__call"); -- TBD
---Blueskies.index.meta.memoinfo.__newindex=require("blueskies.meta.memoinfo.__newindex.hooks"); --TBD
---Blueskies.index.meta.memoinfo.hooks=require("blueskies.meta.memoinfo.__newindex.__newindex"); --TBD
+--index.meta.memoinfo.__call=require("blueskies.meta.memoinfo.__call"); -- TBD
+--index.meta.memoinfo.__newindex=require("blueskies.meta.memoinfo.__newindex.hooks"); --TBD
+--index.meta.memoinfo.hooks=require("blueskies.meta.memoinfo.__newindex"); --TBD
 _lookup=nil; _index=nil;
 
 -- `index_metamap` keeps track which file sections (subtables in `Blueskies.reference`) should be bound to which metatables.

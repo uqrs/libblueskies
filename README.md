@@ -2,6 +2,10 @@
 ## Overview
 Hopefully a tool to turn 3DS Flipnote Studio 3D flips into something a regular PC can display.
 Why's it called libblueskies? Well, my initial motivation for making this tool was to deserialise all of [mellowforests'](http://mellowforests.deviantart.com/) (previously known as 'Blueskies') flipnotes. And it's better than... "deflippifier".
+
+*libblueskies* is in early development at the moment. Consequently, it is
+far from viable to employ it for practical use. Bugs are everywhere, it's
+slow (maybe), and badly documented (for now).
 ### Depencencies:
 - Lua 5.3 or higher.
 - sox, more likely.

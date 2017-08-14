@@ -30,6 +30,7 @@ return function ( self , index )
 	if ( raw ) then
 		lookup[self].cache[index]=header:sub(offset,offset+length);
 	else
+		print(index)
 		lookup[self].cache[index]=handler(header:sub(offset,offset+length));
 	end
 	-- And return it.

@@ -42,4 +42,4 @@ local se4_f=io.open("se4_data.pcm","w"); se4_f:write(KSN.se4_data); se4_f:close(
 local jpg_f=io.open("jpg_data.jpg","w"); jpg_f:write(KTN.jpg);      jpg_f:close(); print("Dumped JPG header data  to jpg_data.jpg");
 
 print("CRC32 as calculated by crc32(): 0x" .. ("%08X"):format(Blueskies.crc32(KFH_raw:sub(13))))
-print("CRC32 as given by KFH         : " .. KFH.crc32)
+print("CRC32 as given by KFH         : 0x" .. ("%08X"):format(KFH.crc32))

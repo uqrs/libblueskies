@@ -25,10 +25,11 @@ local function get_olh ( self , index );
 		return nil
 	end
 
-	-- Retrieve the offset, length, and handler.
+	-- Retrieve the offset, length, handler, and assignment handler.
 	local offset =(reference[index][1]);
 	local length =(reference[index][2]);
 	local handler=(reference[index][3]);
+	local assign =(reference[index][4]);
 	-- If the length is a string, then it will assume the numerical value outputted by the contents of the index referred to by
 	-- the string. If the length is nil, then assume it's the rest of the header.
 	if ( type(length) == "string" ) then; length=tonumber(self[length]);
@@ -44,7 +45,7 @@ local function get_olh ( self , index );
 		offset=current+margin-iter;
 	else --[[ not a string       ]]     ; offset=offset+1; end;
 
-	return offset,length,handler;
+	return offset,length,handler,assign;
 end
 
 return get_olh;

@@ -1,8 +1,10 @@
 --------------------------------------------------------------------------------------------------------------------------------
 -- File Content Handlers
 --------------------------------------------------------------------------------------------------------------------------------
--- The "HANDLER_PROTO" table contains a bunch of function pointers that accept arguments, and return arbitrary data. Further
+-- The "handler_proto" table contains a bunch of function pointers that accept arguments, and return arbitrary data. Further
 -- down, gen_handler() generates wrapper functions for these handlers- a feature that src/indices.lua makes use of.
+--
+-- All handlers accept a sequence of bytes (`input`) and
 --------------------------------------------------------------------------------------------------------------------------------
 do; local handlers_proto={}
 --------------------------------------------------------------------------------------------------------------------------------
@@ -28,11 +30,11 @@ do; local handlers_proto={}
 --------------------------------------------------------------------------------------------------------------------------------
 -- Handler - Epoch
 --------------------------------------------------------------------------------------------------------------------------------
--- Return the total amount of seconds since 1970 + since
+-- Returns a date object for (1970+since+input) seconds since 1970.
 --------------------------------------------------------------------------------------------------------------------------------
 	function handlers_proto.epoch ( input , since )
 		if ( not since ) then; since=0; end
-		return os.date("*t",tonumber(input)+since)
+		return os.date("*t",input+since)
 	end
 --------------------------------------------------------------------------------------------------------------------------------
 -- Handler - UTF-16 display name.
@@ -46,31 +48,55 @@ do; local handlers_proto={}
 		return full;
 	end
 --------------------------------------------------------------------------------------------------------------------------------
--- Handler - Generic Little Endian Parsing
+-- Handler - Generic Little/Big Endian Parsing
 --------------------------------------------------------------------------------------------------------------------------------
--- Parses the given byte sequence, either little or big endian (depending on the value of "endianness"). If 'hexify' is set to
--- 'true', then the output will be a hexidecimal digit. If set to 'false', it will return the number as an integer. If
--- 'prefix' is set to 'true', "0x" is prepended to the output.
+-- Parses the given byte sequence, either little or big endian (depending on the value of "endianness").
 --------------------------------------------------------------------------------------------------------------------------------
-	function handlers_proto.endian ( input , endianness , hexify , prefix )
-		local full="";
+	function handlers_proto.endian ( input , endianness )
+		local total=0;
+		-- If the number is big endian, then turn it into a little endian number by reversing the byte order.
+		if ( endianness == "big" ) then;
+			input=input:reverse();
+		end
+
+		-- Treat each individual byte as a base-256 number.
+		for i=1,input:len(),1 do
+			total=total+(input:sub(i,i):byte()*(256^(i-1)))
+		end
+		-- Done.
+		return total
+	end
+--------------------------------------------------------------------------------------------------------------------------------
+-- Handler - Endianness To String
+--------------------------------------------------------------------------------------------------------------------------------
+-- Parses a given byte sequence, and returns a string describing a hexadecimal number.
+--------------------------------------------------------------------------------------------------------------------------------
+	function handlers_proto.strendian ( input , endianness )
+		local chars={};
 		-- Determine from where to where the for loop should go:
 		local start,stop,interval;
 		if ( endianness == "big" )    then; start,stop,interval=input:len(),1,-1;
 		else --[[little endian          ]]; start,stop,interval=1,input:len(), 1;
 		end
-		-- Need we prepend '0x'?
-		if ( prefix ) then; prefix="0x"; end
 
-		-- Go from the begin to the end, either generating a hex character or a regular decimal integer.
-		;;;; if ( not hexify )	then; for i = start,stop,interval do
-					full=tonumber( "0x" ..("%02X"):format( input:sub(i,i):byte() ) ) .. full;
-		end; else --[[leave as hex]]; for i = start,stop,interval do
-					full=("%02X"):format(input:sub(i,i):byte() ) .. full
-		end; end
+		-- Go from the begin to the end, appending the individual hexadecimal values of bytes.
+		for i = start,stop,interval do
+			chars[#chars+1]=("%02X"):format(input:sub(i,i):byte())
+		end
 		-- Done.
-		return (prefix or "") .. full
+		return ("0x" .. table.concat(chars))
 	end
+
+--------------------------------------------------------------------------------------------------------------------------------
+-- Handler - String Formatting
+--------------------------------------------------------------------------------------------------------------------------------
+-- Takes 'input', and subjects it to a string.format() call, supplying `fmt` as the format.
+--------------------------------------------------------------------------------------------------------------------------------
+	function handlers_proto.format ( input , fmt )
+		print(input)
+		return fmt:format(tostring(input))
+	end
+
 --------------------------------------------------------------------------------------------------------------------------------
 -- Handler - Bit Extraction
 --------------------------------------------------------------------------------------------------------------------------------
