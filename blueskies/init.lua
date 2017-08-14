@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------
 do
 	Blueskies={};
-    Blueskies.flipnote=require("blueskies.flipnote");
+	Blueskies.flipnote=require("blueskies.flipnote");
 	Blueskies.handlers=require("blueskies.handlers");
 	Blueskies.mold=require("blueskies.mold");
 	Blueskies.reference=require("blueskies.reference");
